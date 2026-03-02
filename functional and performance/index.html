@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNESCO Heritage Intelligence</title>
+    <meta name="description"
+        content="An analytical exploration of UNESCO World Heritage Sites — global data, regional growth, and cultural significance.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --ink: #1E1E24;
+            --crimson: #92140C;
+            --cream: #FFF8F0;
+            --ink-80: rgba(30, 30, 36, 0.80);
+            --ink-12: rgba(30, 30, 36, 0.12);
+            --ink-6: rgba(30, 30, 36, 0.06);
+            --cream-60: rgba(255, 248, 240, 0.60);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+            font-family: 'Inter', sans-serif;
+            background: var(--cream);
+            color: var(--ink);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ─── LAYOUT ──────────────────────────────────────── */
+        .app-shell {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ─── SIDEBAR ─────────────────────────────────────── */
+        .sidebar {
+            background: var(--ink);
+            display: flex;
+            flex-direction: column;
+            padding: 2.5rem 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Subtle texture overlay */
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 10% 80%, rgba(146, 20, 12, 0.25) 0%, transparent 60%),
+                radial-gradient(ellipse at 90% 10%, rgba(146, 20, 12, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .sidebar-inner {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        /* Wordmark */
+        .wordmark {
+            margin-bottom: 3rem;
+        }
+
+        .wordmark-label {
+            font-size: 0.6rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: rgba(255, 248, 240, 0.4);
+            font-weight: 500;
+            margin-bottom: 0.6rem;
+        }
+
+        .wordmark-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.45rem;
+            font-weight: 300;
+            color: var(--cream);
+            line-height: 1.25;
+            letter-spacing: 0.01em;
+        }
+
+        .wordmark-title strong {
+            color: #BF3B2E;
+            font-weight: 400;
+        }
+
+        /* Divider */
+        .sidebar-divider {
+            height: 1px;
+            background: linear-gradient(90deg, rgba(255, 248, 240, 0.15), transparent);
+            margin-bottom: 2rem;
+        }
+
+        /* Nav section tag */
+        .nav-section-label {
+            font-size: 0.58rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: rgba(255, 248, 240, 0.3);
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+        }
+
+        nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            padding: 0.75rem 0.875rem;
+            border-radius: 6px;
+            color: rgba(255, 248, 240, 0.55);
+            font-size: 0.875rem;
+            font-weight: 400;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            text-align: left;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.01em;
+            width: 100%;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 60%;
+            background: var(--crimson);
+            border-radius: 0 2px 2px 0;
+            transition: width 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .nav-link:hover {
+            color: var(--cream);
+            background: rgba(255, 248, 240, 0.05);
+        }
+
+        .nav-link.active {
+            color: var(--cream);
+            background: rgba(255, 248, 240, 0.08);
+            font-weight: 500;
+        }
+
+        .nav-link.active::before {
+            width: 3px;
+        }
+
+        .nav-icon {
+            width: 16px;
+            height: 16px;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+            opacity: 0.6;
+            transition: opacity 0.25s;
+        }
+
+        .nav-link:hover .nav-icon,
+        .nav-link.active .nav-icon {
+            opacity: 1;
+        }
+
+        /* Sidebar footer */
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 248, 240, 0.08);
+        }
+
+        .sidebar-footer p {
+            font-size: 0.7rem;
+            line-height: 1.7;
+            color: rgba(255, 248, 240, 0.25);
+            font-weight: 300;
+        }
+
+        .sidebar-footer .status-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #4ADE80;
+            margin-right: 0.4rem;
+            vertical-align: middle;
+            box-shadow: 0 0 6px rgba(74, 222, 128, 0.5);
+        }
+
+        /* ─── MAIN STAGE ──────────────────────────────────── */
+        .main-stage {
+            display: flex;
+            flex-direction: column;
+            background: var(--cream);
+            overflow: hidden;
+        }
+
+        /* Top bar */
+        .topbar {
+            flex-shrink: 0;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            padding: 2.5rem 3rem 1.75rem;
+            border-bottom: 1px solid var(--ink-12);
+        }
+
+        .topbar-heading {}
+
+        .topbar-eyebrow {
+            font-size: 0.65rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--crimson);
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+        }
+
+        #stage-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.4rem;
+            font-weight: 300;
+            letter-spacing: -0.01em;
+            line-height: 1.1;
+            color: var(--ink);
+            transition: opacity 0.4s ease;
+        }
+
+        .topbar-meta {
+            text-align: right;
+        }
+
+        .topbar-meta p {
+            font-size: 0.75rem;
+            color: rgba(30, 30, 36, 0.4);
+            line-height: 1.6;
+            max-width: 220px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--crimson);
+            background: rgba(146, 20, 12, 0.08);
+            border: 1px solid rgba(146, 20, 12, 0.18);
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+        }
+
+        /* ─── IFRAME AREA ─────────────────────────────────── */
+        .frame-area {
+            flex: 1;
+            position: relative;
+            padding: 1.75rem 2.5rem 2rem;
+            min-height: 0;
+        }
+
+        .view-layer {
+            position: absolute;
+            inset: 1.75rem 2.5rem 2rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .view-layer.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .iframe-card {
+            width: 100%;
+            height: 100%;
+            background: white;
+            border-radius: 10px;
+            border: 1px solid var(--ink-12);
+            box-shadow:
+                0 1px 2px rgba(30, 30, 36, 0.04),
+                0 4px 16px rgba(30, 30, 36, 0.06),
+                0 20px 60px rgba(30, 30, 36, 0.05);
+            overflow: hidden;
+        }
+
+        .iframe-card iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-shell">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-inner">
+                <div class="wordmark">
+                    <p class="wordmark-label">Data Intelligence</p>
+                    <h1 class="wordmark-title">UNESCO<br><strong>Heritage</strong> Atlas</h1>
+                </div>
+
+                <div class="sidebar-divider"></div>
+
+                <p class="nav-section-label">Dashboards</p>
+                <nav>
+                    <button onclick="switchView('global', 'Global Patrimony Overview')" id="btn-global"
+                        class="nav-link active">
+                        <!-- Globe icon -->
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="12" cy="12" r="10" />
+                            <path
+                                d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                        </svg>
+                        Global Overview
+                    </button>
+                    <button onclick="switchView('regional', 'Regional Growth Dynamics')" id="btn-regional"
+                        class="nav-link">
+                        <!-- Bar chart icon -->
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M18 20V10M12 20V4M6 20v-6" />
+                        </svg>
+                        Regional Growth
+                    </button>
+                    <button onclick="switchView('story', 'The UNESCO Narrative')" id="btn-story" class="nav-link">
+                        <!-- Story/book icon -->
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                        </svg>
+                        Interactive Story
+                    </button>
+                </nav>
+
+                <div class="sidebar-footer">
+                    <p><span class="status-dot"></span>Live Tableau data</p>
+                    <p>UNESCO Heritage Intelligence<br>© 2026 — All rights reserved</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN STAGE -->
+        <main class="main-stage">
+
+            <div class="topbar">
+                <div class="topbar-heading">
+                    <p class="topbar-eyebrow">Visual Analysis</p>
+                    <h2 id="stage-title">Global Patrimony Overview</h2>
+                </div>
+                <div class="topbar-meta">
+                    <span class="badge">
+                        <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor">
+                            <circle cx="4" cy="4" r="4" />
+                        </svg>
+                        Tableau Public
+                    </span>
+                    <p>An analytical exploration of world heritage sites and cultural significance.</p>
+                </div>
+            </div>
+
+            <div class="frame-area">
+                <div id="global" class="view-layer active">
+                    <div class="iframe-card">
+                        <iframe
+                            src="https://public.tableau.com/views/UNESCOWorldHeritageSites1_17722746450000/UNESCOWorldHeritageSitesGlobalAnalysisDashboard?:embed=yes&:showVizHome=no"
+                            allowfullscreen></iframe>
+                    </div>
+                </div>
+                <div id="regional" class="view-layer">
+                    <div class="iframe-card">
+                        <iframe
+                            src="https://public.tableau.com/views/UNESCOWorldHeritageSites2/UNESCOWorldHeritageRegionalGrowthSizeAnalysis?:embed=yes&:showVizHome=no"
+                            allowfullscreen></iframe>
+                    </div>
+                </div>
+                <div id="story" class="view-layer">
+                    <div class="iframe-card">
+                        <iframe
+                            src="https://public.tableau.com/views/UNESCOWorldHeritageSitesstory_17722747565080/Story1?:embed=yes&:showVizHome=no"
+                            allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        function switchView(viewId, title) {
+            document.querySelectorAll('.view-layer.active').forEach(el => el.classList.remove('active'));
+            setTimeout(() => document.getElementById(viewId).classList.add('active'), 40);
+
+            document.querySelectorAll('.nav-link').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-${viewId}`).classList.add('active');
+
+            const titleEl = document.getElementById('stage-title');
+            titleEl.style.opacity = 0;
+            setTimeout(() => { titleEl.textContent = title; titleEl.style.opacity = 1; }, 280);
+        }
+    </script>
+</body>
+
+</html>
